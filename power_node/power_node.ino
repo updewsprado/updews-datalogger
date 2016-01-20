@@ -72,7 +72,7 @@ int j=0;
 int skip=0;
 int length;
 int paylength=77;
-char tosend[2][XBLEN];
+char *tosend[2];
 String first;
 String sec;
 char xbsend[2][XBLEN];

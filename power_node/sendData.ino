@@ -33,15 +33,16 @@ void sendDataXB(String dataXB){
   
   
   skip=0;
-  /*
+  
   for(i=0; i<parts;i++){
     //memset(tosend[i], '\0', sizeof(tosend[i]));
+    tosend[i]=(char *) malloc(XBLEN);
     sprintf(tosend[i],data+skip,paylength);
     //tosend[i][paylength-1]='\0';
     Serial.println(tosend[i]);
     skip=skip+paylength;
   }
-  
+  /*
   //memset(tosend[i], '\0', sizeof(tosend[i]));
   strncpy(tosend[i],data+skip,exc);
   
@@ -148,7 +149,7 @@ void sendDataXB(String dataXB){
   }
   //interval=120000;
 
-  delay(3000);*/
+  delay(3000);
   return;
 }
 
