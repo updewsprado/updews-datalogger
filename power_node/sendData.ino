@@ -49,20 +49,23 @@ void sendDataXB(String dataXB){
   
   
 
-  /*
+
   //add identifier (A1, A2, etc)
   for(i=0;i<parts+1;i++){
     memset(dummy,'/0',sizeof(dummy));
+    dummy=(char *) malloc(XBLEN);
     strncpy(dummy,id[i],sizeof(id[i]));
     //memcpy(dummy+sizeof(id[i]),"111",sizeof("111"));
     strcat(dummy, randchar);
     strcat(dummy,tosend[i]);
+    xbsend[i]=(char *) malloc(XBLEN);
     strncpy(xbsend[i],dummy,sizeof(dummy)); 
     Serial.println(xbsend[i]);
   }
   
     //xbsend[i]="TESTINGFGSUDUFBUDFHDSAJKEFHHASDJKFHWEUIHFASNFIUAWEHFIAWGAKJHIUDNFASJKHDFGUAYSDEDFB";
     for (i=0;i<parts+1;i++){
+    payload=(uint8_t *) malloc(XBLEN);
     memcpy(payload,xbsend[i],sizeof(xbsend[i]));
     Serial.println(xbsend[i]);
     xbee.send(zbTx);
@@ -151,6 +154,6 @@ void sendDataXB(String dataXB){
   //interval=120000;
 
   delay(3000);
-  return;*/
+  return;
 }
 

@@ -31,7 +31,7 @@ ModemStatusResponse msr = ModemStatusResponse();
 
 elapsedMillis timeElapsed;
 
-uint8_t payload[XBLEN];
+uint8_t *payload;
 
 
 const int cs = 10; //chip select
@@ -75,12 +75,12 @@ int paylength=77;
 char *tosend[2];
 String first;
 String sec;
-char xbsend[2][XBLEN];
+char *xbsend[2];
 char xsend[XBLEN];
 char id[16][3]={"A0","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"};
 //char id[16][3]={"B0","B1","B2","B3","B4","B5","B6","B7","B8","B9","BA","BB","BC","BD","BE","BF"};
 char end_id[]="^";
-char dummy[XBLEN];
+char *dummy;
 
 int randummy;
 char randchar[4]="222";
