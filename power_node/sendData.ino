@@ -42,13 +42,14 @@ void sendDataXB(String dataXB){
     Serial.println(tosend[i]);
     skip=skip+paylength;
   }
-  /*
+  
   //memset(tosend[i], '\0', sizeof(tosend[i]));
+  tosend[i]=(char *) malloc(XBLEN);
   strncpy(tosend[i],data+skip,exc);
   
   
 
-
+  /*
   //add identifier (A1, A2, etc)
   for(i=0;i<parts+1;i++){
     memset(dummy,'/0',sizeof(dummy));
@@ -150,6 +151,6 @@ void sendDataXB(String dataXB){
   //interval=120000;
 
   delay(3000);
-  return;
+  return;*/
 }
 
