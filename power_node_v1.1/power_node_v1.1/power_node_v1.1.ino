@@ -139,7 +139,7 @@ void setup() {
   RTC_init();
   DS3234_init(cs, DS3234_INTCN); //nagawa na
   DS3234_clear_a2f(cs);
-  regularInterval(sleep_period);
+  //regularInterval(sleep_period);
   Serial.println(ReadTimeDate(&lastSec, &lastMin, &lastHr));
   pinMode(sv, OUTPUT);
   pinMode(trigForDue, OUTPUT);
@@ -201,7 +201,7 @@ void loop() {
         case 'A': { //oks
             //SET ALARM
             Serial.println(F("Set Alarm Interval"));
-            setAlarmInterval();
+            //setAlarmInterval();
             Serial.println();
             break;
           }
@@ -355,49 +355,6 @@ String ReadTimeDate(int *secp, int *minp, int *hrp) {
   return (temp);
 }
 
-void set_next_alarm(void) {
-  struct ts t;
-  unsigned char wakeup_min;
-
-  DS3234_get(cs, &t);
-
-  //calculate the minute when the next alarm will be triggered
-  wakeup_min = (t.min / sleep_period + 1) * sleep_period;
-
-  if (wakeup_min > 59) {
-    wakeup_min -= 60;
-  }
-
-  Serial.println(wakeup_min);
-
-  // flags define what calendar component to be checked against the current time in order
-  // to trigger the alarm
-  // A2M2 (minutes) (0 to enable, 1 to disable)
-  // A2M3 (hour)    (0 to enable, 1 to disable)
-  // A2M4 (day)     (0 to enable, 1 to disable)
-  // DY/DT          (dayofweek == 1/dayofmonth == 0)
-  uint8_t flags[4] = { 0, 1, 1, 1 };
-
-  // set Alarm2. only the minute is set since we ignore the hour and day component
-  DS3234_set_a2(cs, wakeup_min, 0, 0, flags);
-
-  // activate Alarm2
-  DS3234_set_creg(cs, DS3234_INTCN | DS3234_A2IE);
-}
-
-void regularInterval (int interval) {
-  int sec1, min1, hr1, min2;
-
-  Serial.println(ReadTimeDate(&sec1, &min1, &hr1)); // an example string
-
-  min2 = min1;
-  while (min2 % interval != 0) {
-    ReadTimeDate(&sec1, &min1, &hr1); // an example string
-    min2 = min1;
-    delay(1000);
-  }
-  set_next_alarm();
-}
 
 void setupTime() {
   int MM = 0, DD = 0, YY = 0, hh = 0, mm = 0, ss = 0;
@@ -432,32 +389,8 @@ void setupTime() {
   Serial.println(ReadTimeDate(&lastSec, &lastMin, &lastHr));
 }
 
-void setAlarmInterval() {
-  while (!Serial.available()) {}
-  int x = 0;
-  if (Serial.available()) {
-    x = Serial.parseInt();
-  }
-
-  Serial.println(x);
-  if ((x != 2) && (x != 10) && (x != 15) && (x != 30) && (x != 60) )
-    Serial.println(F("Not a valid interval. 2, 10, 15, 30, 60"));
-  else {
-    sleep_period = x;
-    Serial.print(F("Successfully changed the alarm interval to "));
-    Serial.println(x);
-  }
-}
-
-
 String sendMessage() {
-    //Serial.println(F("Sending this message: xbee-power module code. Here comes the sun^"));
-    //dataXB="xbee-power module code";
-    //Serial.println(dataXB);
-    //sendDataXB();
-      //char data[160];
-  
-    /////////////
+
     //data="xbee-power module code";
     data=(char *) malloc(160);
     sprintf(data,dataXB,sizeof(dataXB));
@@ -533,7 +466,7 @@ String sendMessage() {
     xbee.send(zbTx);
 
     /*************ERROR CHECKS**************/
-    Serial.println("Packet sent");
+    Serial.println(F("Packet sent"));
 
     // flash TX indicator
     //flashLed(statusLed, 1, 100);
@@ -542,7 +475,7 @@ String sendMessage() {
     // wait up to half second for the status response
     if (xbee.readPacket(1000)) {
       // got a response!
-      Serial.println("Got a response!");
+      Serial.println(F("Got a response!"));
 
 
       // should be a znet tx status               
@@ -553,7 +486,7 @@ String sendMessage() {
         if (txStatus.getDeliveryStatus() == SUCCESS) {
           // success.  time to celebrate
           //flashLed(statusLed, 5, 50);
-          Serial.println("Success!");
+          Serial.println(F("Success!"));
           //lcd.clear();
           //lcd.setCursor(0,0);
           //lcd.print("packet ");
@@ -582,29 +515,29 @@ String sendMessage() {
         else {
           // the remote XBee did not receive our packet. is it powered on?
           //flashLed(errorLed, 6, 500);
-          Serial.println("The remote XBee did not receive our packet. is it powered on?");
+          Serial.println(F("The remote XBee did not receive our packet. is it powered on?"));
         }
       } 
       else{
-        Serial.println("Dunno wat happened huhu.");
+        Serial.println(F("Dunno wat happened huhu."));
       }
 
     } 
     else if (xbee.getResponse().isError()) {
       //nss.print("Error reading packet.  Error code: ");  
       //nss.println(xbee.getResponse().getErrorCode());
-      Serial.println("Error1");
+      Serial.println(F("Error1"));
     } 
     else {
       // local XBee did not provide a timely TX Status Response -- should not happen
       //flashLed(errorLed, 2, 50);
-      Serial.println("Error2");
+      Serial.println(F("Error2"));
     }
     /***************************************/
 
   }
 
-  Serial.println("End of loop");
+  Serial.println(F("End of loop"));
 
   if (timeElapsed > 180000) {
     {				
@@ -626,30 +559,32 @@ void getData() {
   //dataXB="testing testy test^";
   
   //ask Zhey kung pwede ganito magpasa ng data
-  sprintf(dataXB,"testing testy test^",sizeof("testing testy test^"));
-  Serial.println(dataXB);
-  sendMessage();
-  /*
+  //sprintf(dataXB,"testing testy test^",sizeof("testing testy test^"));
+  //Serial.println(dataXB);
+  //sendMessage();
+ 
   //sendMessage("testing xbee-power module code");
   //Serial.println("Sending this message: testing xbee-power module code");
   digitalWrite(trigForDue, HIGH);
-  timestamp = ReadTimeDate(&lastSec, &lastMin, &lastHr);
+  ReadTimeDate(&lastSec, &lastMin, &lastHr);
   customDue.print(command);
   customDue.print("/");
   customDue.println(timestamp);
   delay(5000); //di pa sure
 
   //timestart= millis();
-
+/*
   while ( globalChecker == 0 ) {
     t.update();
-    //if (customDue.available()){
-      //customDue.readBytesUntil('\n',streamBuffer,250);
-    //}
-
-    if (Serial.available()) {
-      Serial.readBytesUntil('\n', streamBuffer, 250);
+    if (customDue.available()){
+      customDue.readBytesUntil('\n',streamBuffer,250);
     }
+    
+    Serial.println(streamBuffer);
+
+    //if (Serial.available()) {
+      //Serial.readBytesUntil('\n', streamBuffer, 250);
+    //}
 
     if (strstr(streamBuffer, "ARQWAIT")) {
       Serial.println(F("Timer Reset"));
