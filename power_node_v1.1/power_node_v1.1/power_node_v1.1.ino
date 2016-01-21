@@ -133,6 +133,7 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(BAUD);
   customDue.begin(BAUD);
+  //customDue.begin(C
   altserial.begin(9600);
   xbee.begin(altserial);
 
@@ -566,21 +567,27 @@ void getData() {
   //sendMessage("testing xbee-power module code");
   //Serial.println("Sending this message: testing xbee-power module code");
   digitalWrite(trigForDue, HIGH);
-  ReadTimeDate(&lastSec, &lastMin, &lastHr);
+  timestamp= ReadTimeDate(&lastSec, &lastMin, &lastHr);
   customDue.print(command);
   customDue.print("/");
   customDue.println(timestamp);
+  Serial.print(command);
+  Serial.print(F("/"));
+  Serial.println(timestamp);
   delay(5000); //di pa sure
 
   //timestart= millis();
-/*
+
   while ( globalChecker == 0 ) {
     t.update();
+    Serial.println(F("Inside globalchecker"));
     if (customDue.available()){
+      Serial.println(F("CD is available"));
       customDue.readBytesUntil('\n',streamBuffer,250);
+      
     }
     
-    Serial.println(streamBuffer);
+    //Serial.println(streamBuffer);
 
     //if (Serial.available()) {
       //Serial.readBytesUntil('\n', streamBuffer, 250);
@@ -665,7 +672,7 @@ void getData() {
   }
 
   Serial.println(F("TIME OUT"));
-*/
+
 }
 
 void printna() {
@@ -675,6 +682,7 @@ void printna() {
   sprintf(dataXB,"No data from Senslope",sizeof("No data from Senslope"));
   sendMessage();
   //sendMessage("No data from Senslope");
+  digitalWrite(trigForDue, LOW);
   t.stop(x);
   globalChecker = 1;
   breaker = 1;
