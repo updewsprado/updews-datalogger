@@ -20,7 +20,7 @@ char code[2] = "";
 
 #define XBLEN 83 //paylenght+2(identifier)+3(randnum)+1(null)
 
-SoftwareSerial customDue(10, 11); //Rx, Tx
+SoftwareSerial customDue(3, 4); //Rx, Tx
 SoftwareSerial altserial(8,9);
 
 XBee xbee = XBee();
@@ -45,7 +45,7 @@ int getDataFlag = 0; //0 default; 1 if ready na
 
 char *command = "ARQCMD6T";
 
-char* streamBuffer = NULL;
+char* streamBuffer;
 
 int timestart = millis();
 int timenow = millis();
@@ -82,6 +82,10 @@ char id[16][3]={"A0","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC"
 char end_id[]="^";
 char *dummy;
 
+int statusLed = 13;
+int errorLed = 13;
+int dataLed = 13;
+
 int randummy;
 char randchar[4]="222";
 int ran_len;
@@ -105,24 +109,6 @@ ZBTxRequest zbTx = ZBTxRequest(addr64, payload, sizeof(payload));
 ZBTxStatusResponse txStatus = ZBTxStatusResponse();
 
 //int pin5 = 0;
-
-int statusLed = 13;
-int errorLed = 13;
-int dataLed = 13;
-/*
-void flashLed(int pin, int times, int wait) {
-
-  for (int i = 0; i < times; i++) {
-    digitalWrite(pin, HIGH);
-    delay(wait);
-    digitalWrite(pin, LOW);
-
-    if (i + 1 < times) {
-      delay(wait);
-    }
-  }
-}*/
-
 
 #include <SPI.h>
 
@@ -158,22 +144,17 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   //if (getDataFlag == 1 ) { //na receiev na yung flag mua sa xbee :o
-  //  getData();
+  //getData();
   //}
-  
+  altserial.listen();
+  delay(500);
   getXBFlag();
   if (xbFlag == 1){
     
     getData();
     xbFlag=0;
     
-    for(i=0;i<3;i++){
-      free(tosend[i]);
-      free(xbsend[i]);
-    }
-    free(dummy);
-    free(data);
-    //free(payload);
+    
   }
 
   if (Serial.find("PM")) {
@@ -391,6 +372,8 @@ void setupTime() {
 }
 
 String sendMessage() {
+    altserial.listen();
+    delay(500);
 
     //data="xbee-power module code";
     data=(char *) malloc(160);
@@ -439,6 +422,8 @@ String sendMessage() {
     sprintf(tosend[i],data+skip,exc);
     Serial.println(tosend[i]);
   
+    free(data);
+  
     //add identifier (A1, A2, etc)
     for(i=0;i<parts+1;i++){
       Serial.println(F("Hello id"));
@@ -458,12 +443,15 @@ String sendMessage() {
       //strcpy(xbsend[i],tosend[i]);
       Serial.println(xbsend[i]);
       Serial.println(F("hello id end"));
-      
+      free(tosend[i]);
     }
+    free(dummy);
+ 
     
     for (i=0;i<parts+1;i++){
     memcpy(payload,xbsend[i],XBLEN);
     Serial.println(xbsend[i]);
+    free(xbsend[i]);
     xbee.send(zbTx);
 
     /*************ERROR CHECKS**************/
@@ -551,12 +539,22 @@ String sendMessage() {
 
   delay(3000);
  //////////////////////////////// 
+  
+    
+    
+    //free(payload);
+  
+  
   return "OK";
 }
 
 
 void getData() {
+  
+  customDue.listen();
+  delay(500);
   Serial.println(F("Turning ON CustomDue "));
+  streamBuffer=(char *) malloc(250);
   //dataXB="testing testy test^";
   
   //ask Zhey kung pwede ganito magpasa ng data
@@ -567,10 +565,13 @@ void getData() {
   //sendMessage("testing xbee-power module code");
   //Serial.println("Sending this message: testing xbee-power module code");
   digitalWrite(trigForDue, HIGH);
+  delay(5000);
   timestamp= ReadTimeDate(&lastSec, &lastMin, &lastHr);
-  customDue.print(command);
-  customDue.print("/");
-  customDue.println(timestamp);
+  customDue.write(command);
+  customDue.write("/");
+  //customDue.println(timestamp);
+  customDue.println("2020-12-31 23:55:00");
+  
   Serial.print(command);
   Serial.print(F("/"));
   Serial.println(timestamp);
@@ -580,18 +581,13 @@ void getData() {
 
   while ( globalChecker == 0 ) {
     t.update();
-    Serial.println(F("Inside globalchecker"));
+    //Serial.println(F("Inside globalchecker"));
     if (customDue.available()){
       Serial.println(F("CD is available"));
       customDue.readBytesUntil('\n',streamBuffer,250);
-      
     }
     
     //Serial.println(streamBuffer);
-
-    //if (Serial.available()) {
-      //Serial.readBytesUntil('\n', streamBuffer, 250);
-    //}
 
     if (strstr(streamBuffer, "ARQWAIT")) {
       Serial.println(F("Timer Reset"));
@@ -614,13 +610,15 @@ void getData() {
       int len = strlen(start);
       start[len - 3] = '\0';
       Serial.println(start);
-      sprintf(streamBuffer, "");
+      Serial.println(F("Tin1"));
+      free(streamBuffer);
+      //sprintf(streamBuffer, "");
       //sendMessage edit
       sprintf(dataXB,start,sizeof(start));
       sendMessage();
       //sendMessage(start);
       //store unsent data- next time na to
-      sprintf(streamBuffer, "");
+      //sprintf(streamBuffer, "");
 
       if (loopnum > 1)  {
 
@@ -650,12 +648,13 @@ void getData() {
             int len = strlen(start);
             start[len - 3] = '\0';
             Serial.println(start);
-            sprintf(streamBuffer, "");
+            Serial.println(F("Tin"));
+            //sprintf(streamBuffer, "");
             //sendMessage edit
             sprintf(dataXB,start,sizeof(start));
             sendMessage();
             //sendMessage(start);
-            sprintf(streamBuffer, "");
+            //sprintf(streamBuffer, "");
             //store unsent data
             if (partnum + 1 == loopnum) {
               loopnum = 0;
@@ -672,7 +671,7 @@ void getData() {
   }
 
   Serial.println(F("TIME OUT"));
-
+ // free(streamBuffer);
 }
 
 void printna() {

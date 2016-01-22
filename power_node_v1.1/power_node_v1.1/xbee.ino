@@ -54,7 +54,7 @@ void getXBFlag() {
             Serial.println(F("But sender did not receive ACK"));
         }
         // set dataLed PWM to value of the first byte in the data
-        analogWrite(dataLed, rx.getData(0));
+        //analogWrite(dataLed, rx.getData(0));
       } else if (xbee.getResponse().getApiId() == MODEM_STATUS_RESPONSE) {
         xbee.getResponse().getModemStatusResponse(msr);
         // the local XBee sends this response on certain events, like association/dissociation
