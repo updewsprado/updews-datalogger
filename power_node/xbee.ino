@@ -42,7 +42,7 @@ void getXBFlag() {
           Serial.println();
           
           xbFlag = 1;
-          
+          Serial.println("xbFlag is set");
           
         if (rx.getOption() == ZB_PACKET_ACKNOWLEDGED) {
             // the sender got an ACK
