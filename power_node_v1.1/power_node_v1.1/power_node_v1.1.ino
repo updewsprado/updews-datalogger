@@ -77,8 +77,8 @@ String first;
 String sec;
 char *xbsend[2];
 char xsend[XBLEN];
-char id[16][3]={"A0","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"};
-//char id[16][3]={"B0","B1","B2","B3","B4","B5","B6","B7","B8","B9","BA","BB","BC","BD","BE","BF"};
+//char id[16][3]={"A0","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"};
+char id[16][3]={"B0","B1","B2","B3","B4","B5","B6","B7","B8","B9","BA","BB","BC","BD","BE","BF"};
 char end_id[]="^";
 char *dummy;
 
@@ -99,6 +99,8 @@ char *data;
 
 int xbFlag=0;
 char dataXB[160];
+
+
 /*********************/
 
 // SH + SL Address of receiving XBee
@@ -376,6 +378,7 @@ String sendMessage() {
     delay(500);
 
     //data="xbee-power module code";
+    strcat(dataXB,"^");
     data=(char *) malloc(160);
     sprintf(data,dataXB,sizeof(dataXB));
     //dataXB.toCharArray(data,sizeof(dataXB));
@@ -569,8 +572,7 @@ void getData() {
   timestamp= ReadTimeDate(&lastSec, &lastMin, &lastHr);
   customDue.write(command);
   customDue.write("/");
-  //customDue.println(timestamp);
-  customDue.println("2020-12-31 23:55:00");
+  customDue.println(timestamp);
   
   Serial.print(command);
   Serial.print(F("/"));
@@ -666,6 +668,13 @@ void getData() {
 
       else {
         Serial.println(F("done"));
+        //dataXB="";
+        for (unsigned char m=0;m<160;m++){
+          dataXB[m]=0;
+        }
+        //sprintf(dataXB,"",sizeof(""));
+        digitalWrite(trigForDue, LOW);
+        return;
       }
     }
   }
@@ -685,6 +694,8 @@ void printna() {
   t.stop(x);
   globalChecker = 1;
   breaker = 1;
+  
+  return;
 }
 
 
