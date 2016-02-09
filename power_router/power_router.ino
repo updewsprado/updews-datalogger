@@ -75,7 +75,7 @@ int xbFlag=0;
 
 
 // SH + SL Address of receiving XBee
-XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40BAD1D0);  //Coordinator
+XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40E2DE9B);  //Coordinator
 ZBTxRequest zbTx = ZBTxRequest(addr64, payload, sizeof(payload));
 ZBTxStatusResponse txStatus = ZBTxStatusResponse();
 
