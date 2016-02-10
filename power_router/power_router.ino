@@ -17,8 +17,8 @@ char code[2] = "";
 #include <elapsedMillis.h>
 #include <SoftwareSerial.h>
 
-#define XBLEN 93 //paylenght+2(identifier)+3(randnum)+1(null)
-#define PAYLEN 90
+#define XBLEN 83 //paylenght+2(identifier)+3(randnum)+1(null)
+#define PAYLEN 80
 
 SoftwareSerial customDue(3, 4); //Rx, Tx
 SoftwareSerial altserial(8,9);
@@ -65,8 +65,6 @@ unsigned char j=0;
 int length=0;
 int paylength=77;
 int datalen=0;
-char id='A';
-//char id='B';
 
 int count_success=0;
 int verify_send[24]={0};
@@ -309,9 +307,8 @@ void sendMessage() {
 		for (j=0;j<XBLEN+1;j++) payload[j]=0x00;
 
 		delay(500);
-		payload[0]=(uint8_t)id;
      
-		for (j=1;j<PAYLEN;j++){
+		for (j=0;j<PAYLEN;j++){
 			payload[j]=(uint8_t)streamBuffer[datalen];
 			datalen++;
 		}
