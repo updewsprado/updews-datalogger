@@ -50,12 +50,11 @@ int globalChecker = 0;
 uint8_t sleep_period = 2;       // the sleep interval in minutes between 2 consecutive alarms
 
 int lastSec, lastMin, lastHr;
+int retryForSD=0;
 
 Timer t;
 int x = 0;
  
-int breaker = 0;
-
 char streamBuffer[250];
 
 int exc=0;
@@ -73,7 +72,8 @@ int xbFlag=0;
 
 
 // SH + SL Address of receiving XBee
-XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40E2DE9B);  //Coordinator
+XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40E2DEA0);  //Coordinator
+//XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40BAD1D2);  //Coordinator
 ZBTxRequest zbTx = ZBTxRequest(addr64, payload, sizeof(payload));
 ZBTxStatusResponse txStatus = ZBTxStatusResponse();
 
@@ -116,7 +116,15 @@ void loop() {
 
 			switch (code[0]) {
 
-				case 'S': { //oks
+				case 'P': { //first tried in kibawe
+					//Poll for customdue
+					Serial.println(F("Set current time"));
+					getData();
+					Serial.println();
+					break;
+				}
+
+                                case 'S': { //oks
 					//SETUP TIME
 					Serial.println(F("Set current time"));
 					setupTime();
@@ -262,6 +270,8 @@ String ReadTimeDate(int *secp, int *minp, int *hrp) {
 	*secp = TimeDate[0];
 	*minp = TimeDate[1];
 	*hrp = TimeDate[2];
+        Serial.println("readtimedate = ");
+        Serial.println(temp);
 	return (temp);
 }
 
@@ -372,8 +382,7 @@ void sendMessage() {
 }
 
 
-void getData() {
-  
+void getData() { 
   
 	Serial.println(F("Turning ON CustomDue "));
   
@@ -391,17 +400,17 @@ void getData() {
 	
 	char Ctimestamp[12] = "";
             
-	for (i=0; i<11; i++){
+	for (i=0; i<12; i++){
 		Ctimestamp[i]= timestamp[i];
 	}
-            
-	Serial.println(Ctimestamp);
+        Ctimestamp[12]= '\0';    
+	
+        Serial.println(Ctimestamp);
     
 	while ( globalChecker == 0 ) {
 		t.update();
 		customDue.listen();
-		//customDue.flush();
-		//streamBuffer= "";	
+		
 		for (i=0; i<250; i++) streamBuffer[i]=0x00;
      
 		Serial.println(F("CD is available"));
@@ -419,18 +428,34 @@ void getData() {
 		}
           
 		else if (strstr(streamBuffer, "ARQSTOP")) {
-			//Serial.println(streamBuffer);
 			Serial.println(F("tapos na"));
 			t.stop(x);
-			streamBuffer[0] = '\0';
-			globalChecker = 1;      
+                        customDue.write("OK");
+	                digitalWrite(trigForDue, LOW);			
+                        streamBuffer[0] = '\0';
+			globalChecker = 1;
+
+
 		}
           
-		else if (strstr(streamBuffer, "#")) {    //trash kaya di nya makita yung #
-			//Serial.println(streamBuffer);
+		else if (strstr(streamBuffer, "#")) {
+			if (strstr(streamBuffer, "SD")){
+                           if (retryForSD == 10){
+                             retryForSD= 0;
+                             t.stop(x);
+                             globalChecker = 1;
+                             
+                           }
+                           retryForSD ++;
+                           digitalWrite(trigForDue, LOW);
+                           delay(1000);
+                           getData();
+                           
+                        }
+                        
 			Serial.println(F("gettting data"));
 			t.stop(x);
-			x = t.every(60000, printna);
+			//x = t.every(60000, printna);
 			Serial.println(streamBuffer);
             
 			streamBuffer[strlen(streamBuffer) - 3] = '\0';
@@ -454,12 +479,11 @@ void printna() {
 
 	Serial.println(F("No data from Senslope"));
 	streamBuffer[0] = '\0';
-	strcpy(streamBuffer,">>#No data from Senslope<<");
+	strcpy(streamBuffer,">>#NODATAFROMSENSLOPE<<");
 	sendMessage();
 	customDue.write("OK");
 	digitalWrite(trigForDue, LOW);
 	t.stop(x);
 	globalChecker = 1;
-	breaker = 1;  
 	return;
 }
