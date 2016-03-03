@@ -4,7 +4,7 @@
   / Pinaganda ko lang, inayos yung mga indent tapos binura yung mga naka-comment
 */
 //#include <stdio.h>
-
+ 
 #define BAUD 9600
 char code[2] = "";
 
