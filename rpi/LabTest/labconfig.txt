@@ -1,0 +1,23 @@
+[name]
+c = LAB
+ra = LABTA
+rb = LABTB
+rc = LABTC
+rd = LABTD
+
+[addr]
+c = 0x400xe20xde0xa0
+ra = 0x400xe20xde0xb2
+rb = 0x400xe20xde0xae
+rc = 
+rd = 
+
+[addr_long]
+c =  ¢ @âÞ
+ra =  ¢ @âÞ²
+rb =  ¢ @âÞ®
+rc = 
+rd = 
+
+[sensorcount]
+site = 2
