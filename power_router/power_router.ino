@@ -3,6 +3,7 @@
   / DEPLOYED IN MARIRONG
   / Pinaganda ko lang, inayos yung mga indent tapos binura yung mga naka-comment
 */
+
 //#include <stdio.h>
  
 #define BAUD 9600
@@ -12,6 +13,7 @@ char code[2] = "";
 #include "Timer.h"
 
 #include <XBee.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <elapsedMillis.h>
@@ -21,7 +23,9 @@ char code[2] = "";
 #define PAYLEN 80
 
 SoftwareSerial customDue(3, 4); //Rx, Tx
-SoftwareSerial altserial(8,9);
+SoftwareSerial altserial(5,6);
+
+
 
 XBee xbee = XBee();
 XBeeResponse response = XBeeResponse();
@@ -37,7 +41,7 @@ const int cs = 10; //chip select
 const int sv = 9; //switch for voltage reading
 const int rv = A0; //read voltage reading
 const int trigForDue = 7; //enable due switch
-const int en = 5; //enable due switch?
+//const int en = 5; //enable due switch?
 const int getDataFlag = 0; //0 default; 1 if ready na
 
 char *command = "ARQCMD6T";
@@ -54,6 +58,8 @@ int retryForSD=0;
 
 Timer t;
 int x = 0;
+
+float voltage=-1;
  
 char streamBuffer[250];
 
@@ -81,11 +87,14 @@ ZBTxStatusResponse txStatus = ZBTxStatusResponse();
 #include <SPI.h>
 
 void setup() {
+        
+  
 
 	// put your setup code here, to run once:
 	Serial.begin(BAUD);
+        delay(500);
 	customDue.begin(BAUD);
-	altserial.begin(9600);
+	altserial.begin(BAUD);
 	xbee.begin(altserial);
 
 	RTC_init();
@@ -94,20 +103,23 @@ void setup() {
 	Serial.println(ReadTimeDate(&lastSec, &lastMin, &lastHr));
 	pinMode(sv, OUTPUT);
 	pinMode(trigForDue, OUTPUT);
-	pinMode(en, OUTPUT);
 	Serial.println(F("STARTING"));
 }
 
 void loop() {
-	altserial.listen();
+
+        altserial.listen();
 	delay(500);
   
 	//getData();		//for testing without xbee
 	getXBFlag();
 	if (xbFlag == 1){
-    
-		getData();
-		xbFlag=0;    
+                readVoltage();
+                sendVoltage();
+                getData();
+
+                xbFlag=0;
+		
 	}
 
 	if (Serial.find("PM")) {
@@ -118,13 +130,12 @@ void loop() {
 
 				case 'P': { //first tried in kibawe
 					//Poll for customdue
-					Serial.println(F("Set current time"));
 					getData();
 					Serial.println();
 					break;
 				}
 
-                                case 'S': { //oks
+				case 'S': { //oks
 					//SETUP TIME
 					Serial.println(F("Set current time"));
 					setupTime();
@@ -142,12 +153,7 @@ void loop() {
 
 				case 'V': { //oks
 					//VOLTAGE MONITOR
-					Serial.println(F("Read voltage: "));
-					digitalWrite(sv, HIGH);
-					float voltage = (analogRead(A0) * (14.0 / 1023.0)); //mapped with 14V as maximum
-					Serial.println(voltage);
-					digitalWrite(sv, LOW);
-					Serial.println();
+					readVoltage();
 					break;
 				}
 			}
@@ -161,6 +167,37 @@ void loop() {
 
 	delay(1000);
 }
+
+void readVoltage(){
+  
+	Serial.println(F("Read voltage: "));
+	
+        digitalWrite(sv, HIGH);
+	delay(500);
+        voltage = (analogRead(A0) * (12.5 / 1023.0)); //mapped with 12.5V as maximum
+	Serial.println(voltage);
+	digitalWrite(sv, LOW);
+
+        return;
+}
+
+void sendVoltage(){
+	String volt;
+        volt=(String)voltage;
+        
+        char voltagedummy[10]="";
+        
+        volt.toCharArray(voltagedummy,sizeof(volt));	
+		
+	for (i=0; i<250; i++) streamBuffer[i]=0x00;
+        //strcpy(streamBuffer,">>#TESTINGDATA<<");
+        strcpy(streamBuffer,">>VOLTAGE#");
+	strncat(streamBuffer, voltagedummy, sizeof(voltagedummy));
+	strncat(streamBuffer, "<<", 2);
+	Serial.println(streamBuffer);
+	sendMessage();
+
+}       
 
 
 int RTC_init() {
@@ -387,6 +424,7 @@ void getData() {
 	Serial.println(F("Turning ON CustomDue "));
   
 	digitalWrite(trigForDue, HIGH);
+        
 	delay(10000);
 	timestamp= ReadTimeDate(&lastSec, &lastMin, &lastHr);
 	customDue.write(command);
@@ -399,6 +437,9 @@ void getData() {
 	
 	
 	char Ctimestamp[12] = "";
+        
+        //sendVoltage();
+        
             
 	for (i=0; i<12; i++){
 		Ctimestamp[i]= timestamp[i];

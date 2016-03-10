@@ -1,5 +1,5 @@
 void getXBFlag() { 
-	Serial.println(F("Waiting for xbee packet"));  
+	Serial.println(F("Wait for xb"));  
 	xbee.readPacket();
     
 	if (xbee.getResponse().isAvailable()) {
@@ -33,30 +33,30 @@ void getXBFlag() {
 			} else if (xbee.getResponse().getApiId() == MODEM_STATUS_RESPONSE) {
 				xbee.getResponse().getModemStatusResponse(msr);
 				// the local XBee sends this response on certain events, like association/dissociation
-				Serial.println(F("Izz not a zb rx packet. Maybe status."));
+				//Serial.println(F("Izz not a zb rx packet. Maybe status."));
         
 				if (msr.getStatus() == ASSOCIATED) {
 					// yay this is great.  flash led
 					//flashLed(statusLed, 10, 10);
-					Serial.println(F("ASSOCIATED"));
+					//Serial.println(F("ASSOCIATED"));
 				} else if (msr.getStatus() == DISASSOCIATED) {
 					// this is awful.. flash led to show our discontent
 					//flashLed(errorLed, 10, 10);
-					Serial.println(F("DISASSOCIATED"));
+					//Serial.println(F("DISASSOCIATED"));
 				} else {
 					// another status
 					//flashLed(statusLed, 5, 10);
-					Serial.println(F("Some other status"));
+					//Serial.println(F("Some other status"));
 				}
 			} else {
 				// not something we were expecting
 				//flashLed(errorLed, 1, 25);
-				Serial.println(F("Izz something we are not expecting"));    
+				//Serial.println(F("Izz something we are not expecting"));    
 			}
 	} else if (xbee.getResponse().isError()) {
 		//nss.print("Error reading packet.  Error code: ");  
 		//nss.println(xbee.getResponse().getErrorCode());
-		Serial.println(F("Error"));
+		//Serial.println(F("Error"));
 	}
 	return;
 }
