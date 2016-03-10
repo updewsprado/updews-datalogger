@@ -1,17 +1,21 @@
 from xbeecoord import *
-import multiprocessing
+from time import sleep
+#import multiprocessing
+
+reset()
+sleep(3)
+getRssi()
+sleep(1)
+wakeup()
+startwait()
 
 
-
-
-
+'''
 def main():
-	poweron()
+	#reset()
 	#getRssi()
 	#wakeup()
 	#startwait()
-	#poweroff()
-
 
 if __name__=='__main__':
 	p = multiprocessing.Process(target=main,name="routine")
@@ -20,6 +24,5 @@ if __name__=='__main__':
 	sleep(10)
 	print "terminating routine"
 	
-	poweroff()
-	sleep(1)
 	p.terminate()
+'''

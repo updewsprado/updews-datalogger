@@ -42,31 +42,37 @@ xbee = ZigBee(ser,escaped=True)
 import pprint
 rssrep=""
 parDB=0
+rssdate=0
 
 
 def getRssi():
 	global rssrep
+	global rssrepA
+	global rssrepB
+	global rssrepC
+	global rssrepD
 	global statDB
 	global parDB
 	global sc
 	
+	
+	rssrep=rssrep+config.get('name', 'c')
 	rssrep=re.sub('[^A-Z0-9\,]',"",rssrep)
 	#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
 	f=open("outbox/rssdata.txt","a")
 	f.write(rssrep)
 	f.close()
 	
-	rssrep=rssrep+config.get('name', 'c')
 	
 	if '1'==sc or '2'==sc or '3'==sc or '4'==sc:
 		#A
+		rssrepA=""
 		xbee.remote_at(							#remote_at RSSI
 			dest_addr_long=DEST_ADDR_RA, 			
 			command="DB", 
 			frame_id="A")
 		
 		respdb_ra = xbee.wait_read_frame()
-		#print respdb_ra
 		statDB = respdb_ra['status']
 		statDB = ord(statDB)
 		
@@ -74,33 +80,25 @@ def getRssi():
 			parDB = respdb_ra['parameter']
 			parDB = ord(parDB)
 			print RA,"is alive. RSS is -",parDB,"dBm"
-			rssrep = rssrep+","+RA
-			rssrep = rssrep+","+str(ord(respdb_ra['parameter']))
-			rssrep=re.sub('[^A-Zbcxy0-9\,]',"",rssrep)
-			#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-			f=open("outbox/rssdata.txt","a")
-			f.write(rssrep)
-			f.close()
+			rssrepA = ","+RA
+			rssrepA = rssrepA+","+str(ord(respdb_ra['parameter']))
+			rssrepA = re.sub('[^A-Zbcxy0-9\,]',"",rssrepA)
 		else:
 			print "Can't connect to", RA
-			rssrep = rssrep+","+RA
-			rssrep = rssrep+","+"100"
-			rssrep=re.sub('[^A-Zbcxy0-9\,]',"",rssrep)
-			#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-			f=open("outbox/rssdata.txt","a")
-			f.write(rssrep)
-			f.close()
-		rssrep=""
+			rssrepA = ","+RA
+			rssrepA = rssrepA+","+"100"
+			rssrepA = re.sub('[^A-Zbcxy0-9\,]',"",rssrepA)
+		print "rss A is done"
 	
 	if '2'==sc or '3'==sc or '4'==sc:
 		#B
+		rssrepB=""
 		xbee.remote_at(							#remote_at RSSI
 			dest_addr_long=DEST_ADDR_RB, 			
 			command="DB", 
 			frame_id="A")
 		
 		respdb_rb = xbee.wait_read_frame()
-		#print respdb_ra
 		statDB = respdb_rb['status']
 		statDB = ord(statDB)
 		
@@ -108,33 +106,24 @@ def getRssi():
 			parDB = respdb_rb['parameter']
 			parDB = ord(parDB)
 			print RB,"is alive. RSS is -",parDB,"dBm"
-			rssrep = rssrep+","+RB
-			rssrep = rssrep+","+str(ord(respdb_rb['parameter']))
-			rssrep=re.sub('[^A-Zbcxy0-9\,]',"",rssrep)
-			#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-			f=open("outbox/rssdata.txt","a")
-			f.write(rssrep)
-			f.close()
+			rssrepB = ","+RB
+			rssrepB = rssrepB+","+str(ord(respdb_rb['parameter']))
+			rssrepB = re.sub('[^A-Zbcxy0-9\,]',"",rssrepB)
 		else:
 			print "Can't connect to", RB
-			rssrep = rssrep+","+RB
-			rssrep = rssrep+","+"100"
-			rssrep=re.sub('[^A-Zbcxy0-9\,]',"",rssrep)
-			#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-			f=open("outbox/rssdata.txt","a")
-			f.write(rssrep)
-			f.close()
-		rssrep=""
+			rssrepB = ","+RB
+			rssrepB = rssrepB+","+"100"
+			rssrepB = re.sub('[^A-Zbcxy0-9\,]',"",rssrepB)
 	
 	if '3'==sc or '4'==sc:
 		#C
+		rssrepC=""
 		xbee.remote_at( 							#remote_at RSSI
 			dest_addr_long=DEST_ADDR_RC, 			
 			command="DB", 
 			frame_id="A")
 		
 		respdb_rc = xbee.wait_read_frame()
-		#print respdb_ra
 		statDB = respdb_rc['status']
 		statDB = ord(statDB)
 		
@@ -142,33 +131,24 @@ def getRssi():
 			parDB = respdb_rc['parameter']
 			parDB = ord(parDB)
 			print RC,"is alive. RSS is -",parDB,"dBm"
-			rssrep = rssrep+","+RC
-			rssrep = rssrep+","+str(ord(respdb_rc['parameter']))
-			rssrep=re.sub('[^A-Zbcxy0-9\,]',"",rssrep)
-			#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-			f=open("outbox/rssdata.txt","a")
-			f.write(rssrep)
-			f.close()
+			rssrepC = ","+RC
+			rssrepC = rssrepC+","+str(ord(respdb_rc['parameter']))
+			rssrepC = re.sub('[^A-Zbcxy0-9\,]',"",rssrepC)
 		else:
 			print "Can't connect to", RC
-			rssrep = rssrep+","+RC
-			rssrep = rssrep+","+"100"
-			rssrep=re.sub('[^A-Zbcxy0-9\,]',"",rssrep)
-			#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-			f=open("outbox/rssdata.txt","a")
-			f.write(rssrep)
-			f.close()
-		rssrep=""
+			rssrepC = ","+RC
+			rssrepC = rssrepC+","+"100"
+			rssrepC = re.sub('[^A-Zbcxy0-9\,]',"",rssrepC)
 	
 	if '4'==sc:
 		#D
+		rssrepD=""
 		xbee.remote_at( 							#remote_at RSSI
 			dest_addr_long=DEST_ADDR_RD, 			
 			command="DB", 
 			frame_id="A")
 		
 		respdb_rd = xbee.wait_read_frame()
-		#print respdb_ra
 		statDB = respdb_rd['status']
 		statDB = ord(statDB)
 		
@@ -176,30 +156,15 @@ def getRssi():
 			parDB = respdb_rd['parameter']
 			parDB = ord(parDB)
 			print RD,"is alive. RSS is -",parDB,"dBm"
-			rssrep = rssrep+","+RD
-			rssrep = rssrep+","+str(ord(respdb_rd['parameter']))
-			rssrep=re.sub('[^A-Zbcxy0-9\,]',"",rssrep)
-			#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-			f=open("outbox/rssdata.txt","a")
-			f.write(rssrep)
-			f.close()
+			rssrepD = ","+RD
+			rssrepD = rssrepD+","+str(ord(respdb_rd['parameter']))
+			rssrepD = re.sub('[^A-Zbcxy0-9\,]',"",rssrepD)
 		else:
 			print "Can't connect to", RD
-			rssrep = rssrep+","+RD
-			rssrep = rssrep+","+"100"
-			rssrep=re.sub('[^A-Zbcxy0-9\,]',"",rssrep)
-			#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-			f=open("outbox/rssdata.txt","a")
-			f.write(rssrep)
-			f.close()
-		rssrep=""
+			rssrepD = ","+RD
+			rssrepD = rssrepD+","+"100"
+			rssrepD = re.sub('[^A-Zbcxy0-9\,]',"",rssrepD)
 	
-	
-	#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
-	f=open("outbox/rssdata.txt","a")
-	f.write("*"+dt.today().strftime("%y%m%d%H%M%S")+"\n")
-	f.close()
-	#return statDB
 	return
 
 	
@@ -210,11 +175,16 @@ def wakeup():
 	#shot_addr = resp["dest_addr"]
 	print "Wake up"
 
-	sleep(3)
+	#sleep(3)
 
 
 	
 def startwait():
+	global rssrepA
+	global rssrepB
+	global rssrepC
+	global rssrepD
+	global rssdate
 	
 	paddr=""
 	dataA=""
@@ -240,53 +210,100 @@ def startwait():
 			
 			hashStart=rf.find('#')
 			
-			if paddr == ADDR_RA:								#if packet is A 
-				dataA=rf[hashStart+1:-1]
-				dataA=re.sub('[^A-Zxyabc0-9\*]',"",dataA)
-				f=open("outbox/dataA.txt","a")
-				f.write(dataA)
-				f.close()
-				if rf.find("<<") is not -1:
-					f=open("outbox/dataA.txt","a")
-					f.write("\n")
+			#pag may voltage na pinadala
+			if rf.find('VOLTAGE') is not -1:
+				if paddr == ADDR_RA:
+					voltRA = rf[hashStart+1:-1]
+					voltRA = re.sub('[^.0-9\*]',"",voltRA)
+					rssrepA = rssrepA+","+voltRA
+					#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
+					f=open("outbox/rssdata.txt","a")
+					f.write(rssrepA)
 					f.close()
-				print ">> Packet from",RA
-			elif paddr == ADDR_RB:								#if packet is B
-				dataB=rf[hashStart+1:-1]
-				dataB=re.sub('[^A-Zxyabc0-9\*]',"",dataB)
-				f=open("outbox/dataB.txt","a")
-				f.write(dataB)
-				f.close()
-				if rf.find("<<") is not -1:
-					f=open("outbox/dataB.txt","a")
-					f.write("\n")
+					print ">> Voltage from",RA
+				if paddr == ADDR_RB:
+					voltRB = rf[hashStart+1:-1]
+					voltRB = re.sub('[^.0-9\*]',"",voltRB)
+					rssrepB = rssrepB+","+voltRB
+					#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
+					f=open("outbox/rssdata.txt","a")
+					f.write(rssrepB)
+					f.close()	
+					print ">> Voltage from",RB
+				if paddr == ADDR_RC:
+					voltRC = rf[hashStart+1:-1]
+					voltRC = re.sub('[^.0-9\*]',"",voltRC)
+					rssrepC = rssrepC+","+voltRC
+					#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
+					f=open("outbox/rssdata.txt","a")
+					f.write(rssrepC)
 					f.close()
-				print ">> Packet from",RB
-			
-			elif paddr == ADDR_RC:								#if packet is C 
-				dataC=rf[hashStart+1:-1]
-				dataC=re.sub('[^A-Zxyabc0-9\*]',"",dataC)
-				f=open("outbox/dataC.txt","a")
-				f.write(dataC)
-				f.close()
-				if rf.find("<<") is not -1:
-					f=open("outbox/dataC.txt","a")
-					f.write("\n")
+					print ">> Voltage from",RC
+				if paddr == ADDR_RD:
+					voltRD = rf[hashStart+1:-1]
+					voltRD = re.sub('[^.0-9\*]',"",voltRD)
+					rssrepD = rssrepD+","+voltRD
+					#f=open("/home/pi/Server/outbox/rssdata.txt", "a")
+					f=open("outbox/rssdata.txt","a")
+					f.write(rssrepD)
 					f.close()
-				print ">> Packet from",RC
-			elif paddr == ADDR_RD:								#if packet is D
-				dataD=rf[hashStart+1:-1]
-				dataD=re.sub('[^A-Zxyabc0-9\*]',"",dataD)
-				f=open("outbox/dataD.txt","a")
-				f.write(dataD)
-				f.close()
-				if rf.find("<<") is not -1:
-					f=open("outbox/dataD.txt","a")
-					f.write("\n")
-					f.close()
-				print ">> Packet from",RD
+					print ">> Voltage from",RD
+					
 			else:
-				print ">> Unknown address"
+				if rssdate is 0:
+					f=open("outbox/rssdata.txt","a")
+					f.write("*"+dt.today().strftime("%y%m%d%H%M%S")+"\n")
+					f.close()
+					rssdate = 1
+
+			
+				if paddr == ADDR_RA:								#if packet is A 
+					dataA=rf[hashStart+1:-1]
+					dataA=re.sub('[^A-Zxyabc0-9\*]',"",dataA)
+					f=open("outbox/dataA.txt","a")
+					f.write(dataA)
+					f.close()
+					if rf.find("<<") is not -1:
+						f=open("outbox/dataA.txt","a")
+						f.write("\n")
+						f.close()
+					print ">> Packet from",RA
+				elif paddr == ADDR_RB:								#if packet is B
+					dataB=rf[hashStart+1:-1]
+					dataB=re.sub('[^A-Zxyabc0-9\*]',"",dataB)
+					f=open("outbox/dataB.txt","a")
+					f.write(dataB)
+					f.close()
+					if rf.find("<<") is not -1:
+						f=open("outbox/dataB.txt","a")
+						f.write("\n")
+						f.close()
+					print ">> Packet from",RB
+				
+				elif paddr == ADDR_RC:								#if packet is C 
+					dataC=rf[hashStart+1:-1]
+					dataC=re.sub('[^A-Zxyabc0-9\*]',"",dataC)
+					f=open("outbox/dataC.txt","a")
+					f.write(dataC)
+					f.close()
+					if rf.find("<<") is not -1:
+						f=open("outbox/dataC.txt","a")
+						f.write("\n")
+						f.close()
+					print ">> Packet from",RC
+				elif paddr == ADDR_RD:								#if packet is D
+					dataD=rf[hashStart+1:-1]
+					dataD=re.sub('[^A-Zxyabc0-9\*]',"",dataD)
+					f=open("outbox/dataD.txt","a")
+					f.write(dataD)
+					f.close()
+					if rf.find("<<") is not -1:
+						f=open("outbox/dataD.txt","a")
+						f.write("\n")
+						f.close()
+					print ">> Packet from",RD
+				else:
+					print ">> Unknown address"
 			
 			paddr=""
 			
@@ -296,20 +313,25 @@ def startwait():
 			
 	ser.close()		
 
-def poweron():
+def reset():
+	#poweroff
 	xbee.remote_at(
-		dest_addr_long=DEST_ADDR_RB, 			
-		command="D1",
-		parameter='\x05')
-		#frame_id="A")
-	
-
-def poweroff():
-	xbee.remote_at(
-	dest_addr_long=DEST_ADDR_RB, 			
+	dest_addr_long=DEST_ADDR_LONG, 			
 		command="D1",
 		parameter='\x04')
 		#frame_id="A")
+		
+	sleep(2)
+	
+	#poweron
+	xbee.remote_at(
+		dest_addr_long=DEST_ADDR_LONG, 			
+		command="D1",
+		parameter='\x05')
+		#frame_id="A")
+		
+	print "Reset done"
+	
 
 	
 '''	
