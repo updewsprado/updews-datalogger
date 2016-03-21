@@ -173,9 +173,10 @@ void readVoltage(){
 	Serial.println(F("Read voltage: "));
 	
         digitalWrite(sv, HIGH);
-	delay(500);
+	delay(10000);
         voltage = (analogRead(A0) * (12.5 / 1023.0)); //mapped with 12.5V as maximum
-	Serial.println(voltage);
+	//voltage = ((((analogRead(A0) * 3.3)/1023)-0.1973)/0.1844);                                                          
+        Serial.println(voltage);
 	digitalWrite(sv, LOW);
 
         return;
