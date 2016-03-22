@@ -1,3 +1,6 @@
 from xbeecoord import getRssi
+from time import sleep
 
-getRssi()
+while True:
+	getRssi()
+	sleep(2)

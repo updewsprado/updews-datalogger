@@ -9,16 +9,19 @@ import re
 from datetime import datetime as dt
 from ConfigParser import SafeConfigParser
 from struct import *
+import sys
+import time
 
 config = SafeConfigParser()
 config.read('LUN_config.txt')
 
 
 #PORT = '/dev/ttyUSB0'
-PORT='COM4'
+PORT='COM11'
 BAUD_RATE = 9600
 
 DEST_ADDR_LONG = "\x00\x00\x00\x00\x00\x00\xff\xff"
+DEST_ADDR_GATE = "\x00\x00\x00\x00\x00\x00\x00\x00"
 DEST_ADDR_RA = pack('>q',int(config.get('addr_long','ra'),16))
 DEST_ADDR_RB = pack('>q',int(config.get('addr_long','rb'),16))
 DEST_ADDR_RC = pack('>q',int(config.get('addr_long','rc'),16))
@@ -47,6 +50,7 @@ endA=0
 endB=0
 endC=0
 endD=0
+startTime=0
 
 
 def getRssi():
@@ -59,9 +63,37 @@ def getRssi():
 	global parDB
 	global sc
 	
-	
-	rssrep="COORDINATOR*RSSI,"config.get('name', 'c')
+	rssrep="COORDINATOR*RSSI,"+config.get('name', 'c')
 	rssrep=re.sub('[^A-Z0-9\,*]',"",rssrep)
+	
+	#for coordinator
+	xbee.remote_at(							#remote_at RSSI
+			dest_addr_long=DEST_ADDR_GATE, 			
+			command="DB", 
+			frame_id="A")
+		
+	respdb_gate = xbee.wait_read_frame()
+	statDB = respdb_gate['status']
+	statDB = ord(statDB)
+	
+	if statDB is 0:
+		parDB = respdb_gate['parameter']
+		parDB = ord(parDB)
+		print "GATEWAY is alive. RSS is -",parDB,"dBm"
+		'''
+		rssrepA = ","+RA
+		rssrepA = rssrepA+","+str(ord(respdb_ra['parameter']))
+		rssrepA = re.sub('[^A-Zbcxy0-9\,]',"",rssrepA)
+		'''
+	else:
+		print "Can't connect to GATEWAY"
+		'''
+		rssrepA = ","+RA
+		rssrepA = rssrepA+","+"100"
+		rssrepA = re.sub('[^A-Zbcxy0-9\,]',"",rssrepA)
+		'''
+
+	
 
 	
 	if '1'==sc or '2'==sc or '3'==sc or '4'==sc:
@@ -88,7 +120,6 @@ def getRssi():
 			rssrepA = ","+RA
 			rssrepA = rssrepA+","+"100"
 			rssrepA = re.sub('[^A-Zbcxy0-9\,]',"",rssrepA)
-		print "rss A is done"
 	
 	if '2'==sc or '3'==sc or '4'==sc:
 		#B
@@ -167,13 +198,18 @@ def getRssi():
 	
 	return
 
+
 	
 def wakeup():
+	global startTime
+	
 	#part to discovery shot 16-bit address
 	xbee.send("tx",data="000\n",dest_addr_long=DEST_ADDR_LONG,dest_addr="\xff\xfe")
 	resp = xbee.wait_read_frame()
 	#shot_addr = resp["dest_addr"]
 	print "Wake up"
+	
+	startTime=time.time()
 
 	#sleep(3)
 
@@ -189,15 +225,24 @@ def startwait():
 	global endB
 	global endC
 	global endD
+	global startTime
 	
 	paddr=""
 	dataA=""
 	dataB=""
 	dataC=""
 	dataD=""
+	rssstart=0
+	lastA=lastB=lastC=lastD=0
 
 	while True:
 		try: 
+			endTime=time.time()
+		
+			if (endTime-startTime) >= 300:
+				print "Time limit reached. Terminating script."
+				sys.exit()
+		
 			print "waiting"
 			response = xbee.wait_read_frame()
 			#print response
@@ -213,6 +258,7 @@ def startwait():
 			paddr = paddr + hex(int(ord(response['source_addr_long'][7])))
 			
 			hashStart=rf.find('#')
+			slashStart=rf.find("/")
 			
 			#pag may voltage na pinadala
 			if rf.find('VOLTAGE') is not -1:
@@ -262,6 +308,8 @@ def startwait():
 
 			
 				if paddr == ADDR_RA:								#if packet is A 
+					if rf[slashStart+1] == rf[slashStart-1]:
+						lastA=1;
 					dataA=rf[hashStart+1:-1]
 					dataA=re.sub('[^A-Zxyabc0-9\*]',"",dataA)
 					f=open("outbox/dataA.txt","a")
@@ -271,8 +319,12 @@ def startwait():
 						f=open("outbox/dataA.txt","a")
 						f.write("\n")
 						f.close()
+						if lastA is 1:
+							endA=1;
 					print ">> Packet from",RA
 				elif paddr == ADDR_RB:								#if packet is B
+					if rf[slashStart+1] == rf[slashStart-1]:
+						lastB=1;
 					dataB=rf[hashStart+1:-1]
 					dataB=re.sub('[^A-Zxyabc0-9\*]',"",dataB)
 					f=open("outbox/dataB.txt","a")
@@ -282,9 +334,13 @@ def startwait():
 						f=open("outbox/dataB.txt","a")
 						f.write("\n")
 						f.close()
+						if lastB is 1:
+							endB=1;
 					print ">> Packet from",RB
 				
 				elif paddr == ADDR_RC:								#if packet is C 
+					if rf[slashStart+1] == rf[slashStart-1]:
+						lastC=1;
 					dataC=rf[hashStart+1:-1]
 					dataC=re.sub('[^A-Zxyabc0-9\*]',"",dataC)
 					f=open("outbox/dataC.txt","a")
@@ -294,8 +350,12 @@ def startwait():
 						f=open("outbox/dataC.txt","a")
 						f.write("\n")
 						f.close()
+						if lastC is 1:
+							endC=1;
 					print ">> Packet from",RC
 				elif paddr == ADDR_RD:								#if packet is D
+					if rf[slashStart+1] == rf[slashStart-1]:
+						lastD=1;
 					dataD=rf[hashStart+1:-1]
 					dataD=re.sub('[^A-Zxyabc0-9\*]',"",dataD)
 					f=open("outbox/dataD.txt","a")
@@ -305,20 +365,22 @@ def startwait():
 						f=open("outbox/dataD.txt","a")
 						f.write("\n")
 						f.close()
+						if lastD is 1:
+							endD=1;
 					print ">> Packet from",RD
 				else:
 					print ">> Unknown address"
 			
 			paddr=""
 			
-			if sc is 1 and endA is 1
-				break
-			elif sc is 2 and endA is 1 and endB is 1
-				break
-			elif sc is 3 and endA is 1 and endB is 1 and endC is 1
-				break
-			elif sc is 4 and endA is 1 and endB is 1 and endC is 1 and endD is 1
-				break
+			if '1'==sc and endA is 1:
+				sys.exit()
+			elif '2'==sc and endA is 1 and endB is 1:
+				sys.exit()
+			elif '3'==sc and endA is 1 and endB is 1 and endC is 1:
+				sys.exit()
+			elif '4'==sc and endA is 1 and endB is 1 and endC is 1 and endD is 1:
+				sys.exit()
 			
 				
 		except KeyboardInterrupt:
@@ -342,7 +404,7 @@ def reset():
 		command="D1",
 		parameter='\x05')
 		#frame_id="A")
-		
+	
 	print "Reset done"
 	
 
