@@ -86,7 +86,7 @@ def getRssi():
 		else:
 			print "Can't connect to", RA
 			rssrepA = ","+RA
-			rssrepA = rssrepA+","+"100"
+			rssrepA = rssrepA+","+"999"
 			rssrepA = re.sub('[^A-Zbcxy0-9\,]',"",rssrepA)
 	
 	if '2'==sc or '3'==sc or '4'==sc:
@@ -111,7 +111,7 @@ def getRssi():
 		else:
 			print "Can't connect to", RB
 			rssrepB = ","+RB
-			rssrepB = rssrepB+","+"100"
+			rssrepB = rssrepB+","+"999"
 			rssrepB = re.sub('[^A-Zbcxy0-9\,]',"",rssrepB)
 	
 	if '3'==sc or '4'==sc:
@@ -136,7 +136,7 @@ def getRssi():
 		else:
 			print "Can't connect to", RC
 			rssrepC = ","+RC
-			rssrepC = rssrepC+","+"100"
+			rssrepC = rssrepC+","+"999"
 			rssrepC = re.sub('[^A-Zbcxy0-9\,]',"",rssrepC)
 	
 	if '4'==sc:
@@ -161,7 +161,7 @@ def getRssi():
 		else:
 			print "Can't connect to", RD
 			rssrepD = ","+RD
-			rssrepD = rssrepD+","+"100"
+			rssrepD = rssrepD+","+"999"
 			rssrepD = re.sub('[^A-Zbcxy0-9\,]',"",rssrepD)
 	
 	return
@@ -371,7 +371,7 @@ def reset():
 		parameter='\x04')
 		#frame_id="A")
 		
-	sleep(2)
+	sleep(3)
 	
 	#poweron
 	xbee.remote_at(

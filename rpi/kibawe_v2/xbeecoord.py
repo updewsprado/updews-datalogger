@@ -13,10 +13,10 @@ import sys
 import time
 
 config = SafeConfigParser()
-config.read('config.txt')
+config.read('config_lab.txt')
 
-PORT = config.get('port', 'xb')
-#PORT='COM4'
+#PORT = config.get('port', 'xb')
+PORT='COM4'
 BAUD_RATE = 9600
 
 DEST_ADDR_LONG = "\x00\x00\x00\x00\x00\x00\xff\xff"
