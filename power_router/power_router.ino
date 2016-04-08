@@ -4,7 +4,6 @@
   / Pinaganda ko lang, inayos yung mga indent tapos binura yung mga naka-comment
 */
 
-//#include <stdio.h>
  
 #define BAUD 9600
 char code[2] = "";
@@ -25,8 +24,6 @@ char code[2] = "";
 SoftwareSerial customDue(3, 4); //Rx, Tx
 SoftwareSerial altserial(5,6);
 
-
-
 XBee xbee = XBee();
 XBeeResponse response = XBeeResponse();
 // create reusable response objects for responses we expect to handle 
@@ -37,48 +34,47 @@ elapsedMillis timeElapsed;
 
 uint8_t payload[XBLEN];
 
-const int cs = 10; //chip select
-const int sv = 9; //switch for voltage reading
-const int rv = A0; //read voltage reading
-const int trigForDue = 7; //enable due switch
-//const int en = 5; //enable due switch?
-const int getDataFlag = 0; //0 default; 1 if ready na
+short cs = 10; //chip select
+short sv = 9; //switch for voltage reading
+short rv = A0; //read voltage reading
+short trigForDue = 7; //enable due switch
+short getDataFlag = 0; //0 default; 1 if ready na
 
 char *command = "ARQCMD6T";
 
-int loopnum = 0;
-int partnum = 0;
+short loopnum = 0;
+short partnum = 0;
 String timestamp = "";
 
-int globalChecker = 0;
+short globalChecker = 0;
 uint8_t sleep_period = 2;       // the sleep interval in minutes between 2 consecutive alarms
 
 int lastSec, lastMin, lastHr;
-int retryForSD=0;
+short retryForSD=0;
 
 Timer t;
-int x = 0;
+short x = 0;
 
 float voltage=-1;
  
-char streamBuffer[250];
+char streamBuffer[180];
 
-int exc=0;
-int parts=0;
-unsigned char i=0;
-unsigned char j=0;
-int length=0;
-int paylength=77;
-int datalen=0;
+short exc=0;
+short parts=0;
+short i=0;
+short j=0;
+short length=0;
+short paylength=77;
+short datalen=0;
 
-int count_success=0;
-int verify_send[24]={0};
+short count_success=0;
+short verify_send[24]={0};
 
-int xbFlag=0;
+short xbFlag=0;
 
 
 // SH + SL Address of receiving XBee
-XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40E2DEA0);  //Coordinator
+XBeeAddress64 addr64 = XBeeAddress64(0x00, 0x00);  //Gateway
 //XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40BAD1D2);  //Coordinator
 ZBTxRequest zbTx = ZBTxRequest(addr64, payload, sizeof(payload));
 ZBTxStatusResponse txStatus = ZBTxStatusResponse();
@@ -88,8 +84,6 @@ ZBTxStatusResponse txStatus = ZBTxStatusResponse();
 
 void setup() {
         
-  
-
 	// put your setup code here, to run once:
 	Serial.begin(BAUD);
         delay(500);
@@ -98,7 +92,7 @@ void setup() {
 	xbee.begin(altserial);
 
 	RTC_init();
-	DS3234_init(cs, DS3234_INTCN); //nagawa na
+	DS3234_init(cs, DS3234_INTCN);
 	DS3234_clear_a2f(cs);
 	Serial.println(ReadTimeDate(&lastSec, &lastMin, &lastHr));
 	pinMode(sv, OUTPUT);
@@ -108,20 +102,21 @@ void setup() {
 
 void loop() {
 
-        altserial.listen();
+	altserial.listen();
 	delay(500);
   
 	//getData();		//for testing without xbee
+        
 	getXBFlag();
 	if (xbFlag == 1){
-                readVoltage();
-                sendVoltage();
-                getData();
+		readVoltage();
+		sendVoltage();
+		getData();
 
-                xbFlag=0;
+		xbFlag=0;
 		
 	}
-
+       
 	if (Serial.find("PM")) {
 		if ((char)Serial.read() == '+') {
 			Serial.readBytesUntil('+', code, 2);
@@ -131,7 +126,6 @@ void loop() {
 				case 'P': { //first tried in kibawe
 					//Poll for customdue
 					getData();
-					Serial.println();
 					break;
 				}
 
@@ -139,7 +133,6 @@ void loop() {
 					//SETUP TIME
 					Serial.println(F("Set current time"));
 					setupTime();
-					Serial.println();
 					break;
 				}
 
@@ -147,7 +140,6 @@ void loop() {
 					//READ TIME
 					Serial.println(F("Read Time"));
 					Serial.println(ReadTimeDate(&lastSec, &lastMin, &lastHr));
-					Serial.println();
 					break;
 				}
 
@@ -156,11 +148,11 @@ void loop() {
 					readVoltage();
 					break;
 				}
+  
 			}
 		}	
 		else {
 			Serial.println(F("OK"));
-			Serial.println();
 		}
 
 	}
@@ -172,34 +164,28 @@ void readVoltage(){
   
 	Serial.println(F("Read voltage: "));
 	
-        digitalWrite(sv, HIGH);
+	digitalWrite(sv, HIGH);
 	delay(10000);
-        voltage = (analogRead(A0) * (12.5 / 1023.0)); //mapped with 12.5V as maximum
+	voltage = (analogRead(A0) * (12.5 / 1023.0)); //mapped with 12.5V as maximum
 	//voltage = ((((analogRead(A0) * 3.3)/1023)-0.1973)/0.1844);                                                          
-        Serial.println(voltage);
+	Serial.println(voltage);
 	digitalWrite(sv, LOW);
 
-        return;
+	return;
 }
 
 void sendVoltage(){
 	String volt;
-        volt=(String)voltage;
-        
-        char voltagedummy[10]="";
-        
-        volt.toCharArray(voltagedummy,sizeof(volt));	
-		
-	for (i=0; i<250; i++) streamBuffer[i]=0x00;
-        //strcpy(streamBuffer,">>#TESTINGDATA<<");
-        strcpy(streamBuffer,">>VOLTAGE#");
+	volt=(String)voltage;        
+	char voltagedummy[10]="";        
+	volt.toCharArray(voltagedummy,sizeof(volt));
+	for (i=0; i<180; i++) streamBuffer[i]=0x00;
+	strcpy(streamBuffer,">>VOLTAGE#");
 	strncat(streamBuffer, voltagedummy, sizeof(voltagedummy));
 	strncat(streamBuffer, "<<", 2);
 	Serial.println(streamBuffer);
 	sendMessage();
-
 }       
-
 
 int RTC_init() {
 	/*added code for changing stuff */
@@ -284,23 +270,18 @@ String ReadTimeDate(int *secp, int *minp, int *hrp) {
 	//20201231 23:55:00
 	//160129235500 
 	temp.concat(TimeDate[6]); // YEAR
-	//temp.concat("-") ;
 	if (TimeDate[5] < 10)
 		temp.concat("0");
 	temp.concat(TimeDate[5]); //MONTH
-	//temp.concat("-") ;
 	if (TimeDate[4] < 10)
 		temp.concat("0");
 	temp.concat(TimeDate[4]); //DAY
-	//temp.concat(" ") ;
 	if (TimeDate[2] < 10)
 		temp.concat("0");
 	temp.concat(TimeDate[2]); // HH
-	//temp.concat(":") ;
 	if (TimeDate[1] < 10)
 		temp.concat("0");
 	temp.concat(TimeDate[1]); //MIN
-	//temp.concat(":") ;
 	if (TimeDate[0] < 10)
 		temp.concat("0");
 	temp.concat(TimeDate[0]);  // SEC
@@ -308,8 +289,6 @@ String ReadTimeDate(int *secp, int *minp, int *hrp) {
 	*secp = TimeDate[0];
 	*minp = TimeDate[1];
 	*hrp = TimeDate[2];
-        Serial.println("readtimedate = ");
-        Serial.println(temp);
 	return (temp);
 }
 
@@ -327,7 +306,7 @@ void setupTime() {
 		mm = Serial.parseInt();
 		ss = Serial.parseInt();
 	}
-  
+	
 	SetTimeDate(DD, MM, YY, hh, mm, ss);
 	Serial.println(F("Time now is: "));
 	Serial.println(ReadTimeDate(&lastSec, &lastMin, &lastHr));
@@ -336,19 +315,13 @@ void setupTime() {
 void sendMessage() {
 	// altserial.listen();
 	delay(500);
-  
 	// delay(4000);
 	Serial.println(F("Start"));
 	length=strlen(streamBuffer);
 	
 	exc=length%PAYLEN;
 	parts=length/PAYLEN;
-	Serial.print(F("length="));
-	Serial.println(length);
-	Serial.print(F("parts="));
-	Serial.println(parts);
-	Serial.print(F("excess="));
-	Serial.println(exc);
+	
 	datalen = 0;
       
 	for (i=0;i<parts+1;i++){
@@ -362,13 +335,10 @@ void sendMessage() {
 		}
 
 		Serial.println(datalen);
- 
-      
 		Serial.println(F("sending before xbee.send"));
-    
+
 		xbee.send(zbTx);
 		Serial.println(F("sending"));
-      
       
 		//ERROR CHECKS
 		Serial.println(F("Packet sent"));
@@ -387,31 +357,13 @@ void sendMessage() {
 				if (txStatus.getDeliveryStatus() == SUCCESS) {
 					Serial.println(F("Success!"));
 					//success means nareceive ni coordinator
-					if (verify_send[i] == 0){
-						count_success=count_success+1;
-						verify_send[i]=1;
-						if (count_success==parts+1){
-						}
-					}	
 				} 
 				else {
 					// the remote XBee did not receive our packet. is it powered on?
 					Serial.println(F("myb no pwr"));
 				}
 			} 
-			else{
-			}
-
-		} 
-		else if (xbee.getResponse().isError()) {
-			Serial.println(F("Error1"));
-		} 
-		else {
-			// local XBee did not provide a timely TX Status Response -- should not happen
-			// but happens because 	
-			Serial.println(F("Error2"));
 		}
-
 	}
 	Serial.println(F("exit send"));
 
@@ -421,96 +373,93 @@ void sendMessage() {
 
 
 void getData() { 
-  
+
 	Serial.println(F("Turning ON CustomDue "));
-  
+
 	digitalWrite(trigForDue, HIGH);
-        
 	delay(10000);
 	timestamp= ReadTimeDate(&lastSec, &lastMin, &lastHr);
 	customDue.write(command);
-	//customDue.write("/");
 	customDue.println(timestamp);
-  
+	
 	Serial.print(command);
-	//Serial.print(F("/"));
 	Serial.println(timestamp);
 	
-	
 	char Ctimestamp[12] = "";
-        
-        //sendVoltage();
-        
-            
+	
 	for (i=0; i<12; i++){
 		Ctimestamp[i]= timestamp[i];
 	}
-        Ctimestamp[12]= '\0';    
+	Ctimestamp[12]= '\0';    
 	
-        Serial.println(Ctimestamp);
+	Serial.println(Ctimestamp);
     
 	while ( globalChecker == 0 ) {
 		t.update();
 		customDue.listen();
 		
-		for (i=0; i<250; i++) streamBuffer[i]=0x00;
-     
+		for (i=0; i<180; i++) streamBuffer[i]=0x00;
+		streamBuffer[0] = '\0';
+		
 		Serial.println(F("CD is available"));
-		customDue.readBytesUntil('\n',streamBuffer,250);
-
+		customDue.readBytesUntil('\n',streamBuffer,180);
 
 		delay (500);
-		Serial.println(streamBuffer);   
+		//Serial.println(streamBuffer);   
 		if (strstr(streamBuffer, "ARQWAIT")) {
-			Serial.println(F("Ditong streambuffer?"));
 			Serial.println(F("Timer Reset"));
 			t.stop(x);
 			x = t.every(60000, printna);
+			for (i=0; i<180; i++) streamBuffer[i]=0x00;
 			streamBuffer[0] = '\0';
 		}
-          
+		
 		else if (strstr(streamBuffer, "ARQSTOP")) {
 			Serial.println(F("tapos na"));
 			t.stop(x);
-                        customDue.write("OK");
-	                digitalWrite(trigForDue, LOW);			
-                        streamBuffer[0] = '\0';
+			customDue.println(F("OK"));
+			digitalWrite(trigForDue, LOW);			
+			for (i=0; i<180; i++) streamBuffer[i]=0x00;
+			streamBuffer[0] = '\0';
 			globalChecker = 1;
-
-
 		}
           
 		else if (strstr(streamBuffer, "#")) {
 			if (strstr(streamBuffer, "SD")){
-                           if (retryForSD == 10){
-                             retryForSD= 0;
-                             t.stop(x);
-                             globalChecker = 1;
-                             
-                           }
-                           retryForSD ++;
-                           digitalWrite(trigForDue, LOW);
-                           delay(1000);
-                           getData();
-                           
-                        }
-                        
-			Serial.println(F("gettting data"));
-			t.stop(x);
-			//x = t.every(60000, printna);
-			Serial.println(streamBuffer);
+				if (retryForSD == 10){
+					retryForSD= 0;
+					t.stop(x);
+					globalChecker = 1; 
+				}
+				
+				retryForSD ++;
+				digitalWrite(trigForDue, LOW);
+				delay(1000);
+				getData();
+		
+			}
+			if (strstr(streamBuffer, "<<")){
+				Serial.println(F("gettting data"));
+				t.stop(x);
+				//x = t.every(60000, printna);
+				Serial.println(streamBuffer);
             
-			streamBuffer[strlen(streamBuffer) - 3] = '\0';
-            
-			strncat(streamBuffer, "*", 1);
-			strncat(streamBuffer, Ctimestamp, 12);
-			strncat(streamBuffer, "<<", 2);
-			Serial.println(streamBuffer);
-			sendMessage();
+				streamBuffer[strlen(streamBuffer) - 3] = '\0';
+				
+				strncat(streamBuffer, "*", 1);
+				strncat(streamBuffer, Ctimestamp, 12);
+				strncat(streamBuffer, "<<", 2);
+				Serial.println(streamBuffer);
+				sendMessage();
+			}
+			else{
+				Serial.println(F("Message did not finish"));
+			}
 			Serial.println(F("sending ok to custom due"));
-			customDue.write("OK");
+			customDue.println(F("OK"));
 		}
 	}
+
 	digitalWrite(trigForDue, LOW);
 	globalChecker=0;
 	Serial.println(F("TIME OUT"));
@@ -521,9 +470,9 @@ void printna() {
 
 	Serial.println(F("No data from Senslope"));
 	streamBuffer[0] = '\0';
-	strcpy(streamBuffer,">>#NODATAFROMSENSLOPE<<");
+	strcpy(streamBuffer,">>#NO DATA FROM SENSLOPE<<");
 	sendMessage();
-	customDue.write("OK");
+	customDue.println(F("OK"));
 	digitalWrite(trigForDue, LOW);
 	t.stop(x);
 	globalChecker = 1;
