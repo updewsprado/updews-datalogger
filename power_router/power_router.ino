@@ -78,7 +78,7 @@ int xbFlag=0;
 
 
 // SH + SL Address of receiving XBee
-XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40E2DEA0);  //Coordinator
+XBeeAddress64 addr64 = XBeeAddress64(0x00, 0x00);  //Coordinator
 //XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x40BAD1D2);  //Coordinator
 ZBTxRequest zbTx = ZBTxRequest(addr64, payload, sizeof(payload));
 ZBTxStatusResponse txStatus = ZBTxStatusResponse();
@@ -471,43 +471,35 @@ void getData() {
 		else if (strstr(streamBuffer, "ARQSTOP")) {
 			Serial.println(F("tapos na"));
 			t.stop(x);
-                        customDue.write("OK");
-	                digitalWrite(trigForDue, LOW);			
-                        streamBuffer[0] = '\0';
+			customDue.write("OK");
+			digitalWrite(trigForDue, LOW);			
+			streamBuffer[0] = '\0';
 			globalChecker = 1;
 
 
 		}
           
 		else if (strstr(streamBuffer, "#")) {
-			if (strstr(streamBuffer, "SD")){
-                           if (retryForSD == 10){
-                             retryForSD= 0;
-                             t.stop(x);
-                             globalChecker = 1;
-                             
-                           }
-                           retryForSD ++;
-                           digitalWrite(trigForDue, LOW);
-                           delay(1000);
-                           getData();
-                           
-                        }
-                        
-			Serial.println(F("gettting data"));
-			t.stop(x);
-			//x = t.every(60000, printna);
-			Serial.println(streamBuffer);
-            
-			streamBuffer[strlen(streamBuffer) - 3] = '\0';
-            
-			strncat(streamBuffer, "*", 1);
-			strncat(streamBuffer, Ctimestamp, 12);
-			strncat(streamBuffer, "<<", 2);
-			Serial.println(streamBuffer);
-			sendMessage();
-			Serial.println(F("sending ok to custom due"));
-			customDue.write("OK");
+			if (strstr(streamBuffer, "<<")){
+				Serial.println(F("gettting data"));
+				t.stop(x);
+				//x = t.every(60000, printna);
+				Serial.println(streamBuffer);
+				
+				streamBuffer[strlen(streamBuffer) - 3] = '\0';
+				
+				strncat(streamBuffer, "*", 1);
+				strncat(streamBuffer, Ctimestamp, 12);
+				strncat(streamBuffer, "<<", 2);
+				Serial.println(streamBuffer);
+				sendMessage();
+				Serial.println(F("sending ok to custom due"));
+				customDue.write("OK");
+			}
+			else{
+				Serial.println(F("Message incomplete"));
+				customDue.write("OK");
+			}
 		}
 	}
 	digitalWrite(trigForDue, LOW);
